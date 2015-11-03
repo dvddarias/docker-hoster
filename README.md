@@ -24,4 +24,4 @@ For example, the following container would be available via DNS as `myname.local
 		--label hoster.domains="myserver.com www.myserver.com" \
 		mycontainer
 
-If you need more features like **systemd interation** and **dns forwarding** please check [resolvable](https://hub.docker.com/r/mgood/resolvable/)
+If you need more features like **systemd integration** and **dns forwarding** please check [resolvable](https://hub.docker.com/r/mgood/resolvable/)
