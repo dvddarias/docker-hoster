@@ -39,17 +39,18 @@ def main():
 
     #listen for events to keep the hosts file updated
     for e in events:
-
-        if e["status"]=="start":
+        status = e["status"];
+        if status =="start":
             container_id = e["id"]
             container = get_container_data(docker, container_id)
             hosts[container_id] = container
             update_hosts_file()
 
-        if e["status"]=="stop":
+        if status=="stop" or status=="die" or status=="destroy":
             container_id = e["id"]
-            hosts.pop(container_id)
-            update_hosts_file()
+            if container_id in hosts:
+                hosts.pop(container_id)
+                update_hosts_file()
 
 
 def get_container_data(docker, container_id):

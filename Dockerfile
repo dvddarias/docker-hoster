@@ -5,7 +5,7 @@ RUN mkdir /hoster
 WORKDIR /hoster
 ADD hoster.py /hoster/
 
-CMD ["python3", "hoster.py"]
+CMD ["python3", "-u", "hoster.py"]
 
 
 

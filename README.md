@@ -4,10 +4,10 @@ A simple "etc/hosts" file injection tool to resolve names of local Docker contai
 
 hoster is intended to run in a Docker container:
 
-	docker run -d \
-		-v /var/run/docker.sock:/tmp/docker.sock \
-    -v /etc/hosts:/tmp/hosts \
-		dvdarias/docker-hoster
+    docker run -d \
+        -v /var/run/docker.sock:/tmp/docker.sock \
+        -v /etc/hosts:/tmp/hosts \
+        dvdarias/docker-hoster
 
 The `docker.sock` is mounted to allow hoster to listen for Docker events and automatically register containers IP.
 
@@ -19,9 +19,9 @@ Hoster provides by default the entry `<name>.local` for each container. Also you
 
 For example, the following container would be available via DNS as `myname.local`, `myserver.com` and `www.myserver.com`:
 
-	docker run -d \
-		--name myname \
-		--label hoster.domains="myserver.com www.myserver.com" \
-		mycontainer
+    docker run -d \
+        --name myname \
+        --label hoster.domains="myserver.com www.myserver.com" \
+        mycontainer
 
 If you need more features like **systemd interation** and **dns forwarding** please check [resolvable](https://hub.docker.com/r/mgood/resolvable/)
