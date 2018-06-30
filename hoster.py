@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from docker import Client
+import docker
 import argparse
 import shutil
 import signal
@@ -27,12 +27,12 @@ def main():
     global hosts_path
     hosts_path = args.file
 
-    docker = Client(base_url='unix://%s'%args.socket)
-    events = docker.events(decode=True)
+    dockerClient = docker.APIClient(base_url='unix://%s' % args.socket)
+    events = dockerClient.events(decode=True)
     #get running containers
-    for c in docker.containers(quiet=True,all=False):
+    for c in dockerClient.containers(quiet=True, all=False):
         container_id = c["Id"]
-        container = get_container_data(docker, container_id)
+        container = get_container_data(dockerClient, container_id)
         hosts[container_id] = container
 
     update_hosts_file()
@@ -42,7 +42,7 @@ def main():
         status = e["status"];
         if status =="start":
             container_id = e["id"]
-            container = get_container_data(docker, container_id)
+            container = get_container_data(dockerClient, container_id)
             hosts[container_id] = container
             update_hosts_file()
 
@@ -53,19 +53,30 @@ def main():
                 update_hosts_file()
 
 
-def get_container_data(docker, container_id):
+def get_container_data(dockerClient, container_id):
     #extract all the info with the docker api
-    info = docker.inspect_container(container_id)
-    container_ip = info["NetworkSettings"]["IPAddress"]
+    info = dockerClient.inspect_container(container_id)
+    container_hostname = info["Config"]["Hostname"]
     container_name = info["Name"].strip("/")
-    labels = info["Config"]["Labels"]
-    domains = set()
-    if label_name in labels:
-        domains = domains.union([d.strip() for d in labels[label_name].split()])
+    container_ip = info["NetworkSettings"]["IPAddress"]
+    
+    result = []
 
-    domains.add("%s.local"%container_name)
+    for values in info["NetworkSettings"]["Networks"].values():
+        
+        if not values["Aliases"]: 
+            continue
 
-    return { "ip": container_ip, "name": container_name, "domains": domains}
+        result.append({
+                "ip": values["IPAddress"] , 
+                "name": container_name,
+                "domains": set(values["Aliases"] + [container_name, container_hostname])
+            })
+
+    if container_ip:
+        result.append({"ip": container_ip, "name": container_name, "domains": [container_name, container_hostname ]})
+
+    return result
 
 
 def update_hosts_file():
@@ -74,8 +85,9 @@ def update_hosts_file():
     else:
         print("Updating hosts file with:")
 
-    for k,v in hosts.items():
-        print("ip: %s domains: %s"%(v["ip"],v["domains"]))
+    for id,addresses in hosts.items():
+        for addr in addresses:
+            print("ip: %s domains: %s" % (addr["ip"], addr["domains"]))
 
     #read all the lines of thge original file
     lines = []
@@ -94,8 +106,11 @@ def update_hosts_file():
     #append all the domain lines
     if len(hosts)>0:
         lines.append("\n\n"+enclosing_pattern)
-        for k,v in hosts.items():
-            lines.append("%s    %s\n"%(v["ip"],"   ".join(v["domains"])))
+        
+        for id, addresses in hosts.items():
+            for addr in addresses:
+                lines.append("%s    %s\n"%(addr["ip"],"   ".join(addr["domains"])))
+        
         lines.append("#-----Do-not-add-hosts-after-this-line-----\n\n")
 
     #write it on the auxiliar file

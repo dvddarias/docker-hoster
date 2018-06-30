@@ -15,13 +15,14 @@ Hoster inserts into the host's `/etc/hosts` file an entry per running container 
 
 ## Container Registration
 
-Hoster provides by default the entry `<name>.local` for each container. Also you can set a label `hoster.domains` with a list of space separated domains to include as container aliases. Containers are automatically registered when they start, and removed when they die.
+Hoster provides by default the entries `<container name>, <hostname>, <container id>` for each container and the aliases for each network. Containers are automatically registered when they start, and removed when they die.
 
-For example, the following container would be available via DNS as `myname.local`, `myserver.com` and `www.myserver.com`:
+For example, the following container would be available via DNS as `myname`, `myhostname`, `et54rfgt567` and `myserver.com`:
 
     docker run -d \
         --name myname \
-        --label hoster.domains="myserver.com www.myserver.com" \
+        --hostname myhostname \
+        --network somenetwork --network-alias "myserver.com" \
         mycontainer
 
 If you need more features like **systemd interation** and **dns forwarding** please check [resolvable](https://hub.docker.com/r/mgood/resolvable/)
