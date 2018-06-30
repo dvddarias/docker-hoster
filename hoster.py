@@ -39,7 +39,10 @@ def main():
 
     #listen for events to keep the hosts file updated
     for e in events:
-        status = e["status"];
+        if e["Type"]!="container": 
+            continue
+        
+        status = e["status"]
         if status =="start":
             container_id = e["id"]
             container = get_container_data(dockerClient, container_id)
