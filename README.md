@@ -26,3 +26,5 @@ For example, the following container would be available via DNS as `myname`, `my
         mycontainer
 
 If you need more features like **systemd interation** and **dns forwarding** please check [resolvable](https://hub.docker.com/r/mgood/resolvable/)
+
+Any contribution is, of course, welcome. :)
