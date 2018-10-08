@@ -19,7 +19,7 @@ Hoster provides by default the entries `<container name>, <hostname>, <container
 
 For example, the following container would be available via DNS as `myname`, `myhostname`, `et54rfgt567` and `myserver.com`:
 
-    docker run -d \
+    docker run --restart=unless-stopped -d \
         --name myname \
         --hostname myhostname \
         --network somenetwork --network-alias "myserver.com" \
