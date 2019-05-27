@@ -11,6 +11,8 @@ label_name = "hoster.domains"
 enclosing_pattern = "#-----------Docker-Hoster-Domains----------\n"
 hosts_path = "/tmp/hosts"
 hosts = {}
+networks = []
+masks = []
 
 def signal_handler(signal, frame):
     global hosts
@@ -26,6 +28,10 @@ def main():
     args = parse_args()
     global hosts_path
     hosts_path = args.file
+    global networks
+    networks = args.networks
+    global masks
+    masks = args.masks
 
     dockerClient = docker.APIClient(base_url='unix://%s' % args.socket)
     events = dockerClient.events(decode=True)
@@ -55,6 +61,20 @@ def main():
                 hosts.pop(container_id)
                 update_hosts_file()
 
+def add_domains_with_filtering(result, ip, name, domains):
+    if masks:
+        filtered_domains = []
+        for mask in masks:
+            for domain in domains:
+                if mask in domain:
+                     filtered_domains.append(domain)
+        domains = filtered_domains
+    if domains:
+        result.append({
+            "ip": ip,
+            "name": name,
+            "domains": domains
+        })
 
 def get_container_data(dockerClient, container_id):
     #extract all the info with the docker api
@@ -62,22 +82,38 @@ def get_container_data(dockerClient, container_id):
     container_hostname = info["Config"]["Hostname"]
     container_name = info["Name"].strip("/")
     container_ip = info["NetworkSettings"]["IPAddress"]
-    
+
     result = []
 
-    for values in info["NetworkSettings"]["Networks"].values():
-        
-        if not values["Aliases"]: 
-            continue
+    if networks:
+        for network in networks:
+            if network in info["NetworkSettings"]["Networks"]:
+                network_data = info["NetworkSettings"]["Networks"][network]
+                add_domains_with_filtering(
+                    result,
+                    network_data["IPAddress"],
+                    container_name,
+                    network_data["Aliases"]
+                )
+    else:
+        for values in info["NetworkSettings"]["Networks"].values():
+            if not values["Aliases"]:
+                continue
 
-        result.append({
-                "ip": values["IPAddress"] , 
-                "name": container_name,
-                "domains": set(values["Aliases"] + [container_name, container_hostname])
-            })
+            add_domains_with_filtering(
+                result,
+                values["IPAddress"],
+                container_name,
+                set(values["Aliases"] + [container_name, container_hostname])
+            )
 
-    if container_ip:
-        result.append({"ip": container_ip, "name": container_name, "domains": [container_name, container_hostname ]})
+        if container_ip:
+            add_domains_with_filtering(
+                result,
+                container_name,
+                container_name,
+                [container_name, container_hostname ]
+            )
 
     return result
 
@@ -130,6 +166,7 @@ def parse_args():
     parser.add_argument('socket', type=str, nargs="?", default="/tmp/docker.sock", help='The docker socket to listen for docker events.')
     parser.add_argument('file', type=str, nargs="?", default="/tmp/hosts", help='The /etc/hosts file to sync the containers with.')
     parser.add_argument('--networks', type=str, nargs="*", default=None, help='Manage aliases only for this docker network name.')
+    parser.add_argument('--masks', type=str, nargs="*", default=None, help='Mask for filtering aliases')
     return parser.parse_args()
 
 if __name__ == '__main__':
