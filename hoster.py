@@ -64,10 +64,11 @@ def main():
 def add_domains_with_filtering(result, ip, name, domains):
     if masks:
         filtered_domains = []
-        for mask in masks:
-            for domain in domains:
+        for domain in domains:
+            for mask in masks:
                 if mask in domain:
                      filtered_domains.append(domain)
+                     break
         domains = filtered_domains
     if domains:
         result.append({
