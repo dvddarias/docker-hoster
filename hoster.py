@@ -106,7 +106,8 @@ def update_hosts_file():
             break;
 
     #remove all the trailing newlines on the line list
-    while lines[-1].strip()=="": lines.pop()
+    if lines:
+        while lines[-1].strip()=="": lines.pop()
 
     #append all the domain lines
     if len(hosts)>0:
