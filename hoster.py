@@ -62,6 +62,9 @@ def get_container_data(dockerClient, container_id):
     container_hostname = info["Config"]["Hostname"]
     container_name = info["Name"].strip("/")
     container_ip = info["NetworkSettings"]["IPAddress"]
+    if not container_ip and info["NetworkSettings"]["Networks"]["host"]:
+        container_ip = "127.0.0.1"
+
     if info["Config"]["Domainname"]:
         container_hostname = container_hostname + "." + info["Config"]["Domainname"]
     
