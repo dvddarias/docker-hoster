@@ -24,10 +24,9 @@ jobs:
           images: |
             neilpang/docker-hoster
           tags: |
-            type=semver,suffix=-alpine,pattern={{version}}
-            type=semver,suffix=-alpine,pattern={{major}}.{{minor}}
-            type=raw,value=alpine,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
-          flavor: latest=false
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
