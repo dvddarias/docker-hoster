@@ -129,9 +129,11 @@ def update_hosts_file():
 
 
 def parse_args():
+    hostPath = os.getenv('HOST_PATH', "/tmp/hosts")
+    sockPath = os.getenv('SOCK_PATH', "tmp/docker.sock")
     parser = argparse.ArgumentParser(description='Synchronize running docker container IPs with host /etc/hosts file.')
-    parser.add_argument('socket', type=str, nargs="?", default="tmp/docker.sock", help='The docker socket to listen for docker events.')
-    parser.add_argument('file', type=str, nargs="?", default="/tmp/hosts", help='The /etc/hosts file to sync the containers with.')
+    parser.add_argument('socket', type=str, nargs="?", default=sockPath, help='The docker socket to listen for docker events.')
+    parser.add_argument('file', type=str, nargs="?", default=hostPath, help='The /etc/hosts file to sync the containers with.')
     return parser.parse_args()
 
 if __name__ == '__main__':
