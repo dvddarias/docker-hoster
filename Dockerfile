@@ -1,11 +1,16 @@
-FROM docker.io/library/python:3-alpine
+# syntax=docker/dockerfile:1
+
+ARG BASE_IMAGE=docker.io/library/python:3-alpine
+ARG APP_DIR=/hoster
+
+FROM ${BASE_IMAGE}
 
 RUN pip3 install docker
-RUN mkdir /hoster
-WORKDIR /hoster
-ADD hoster.py /hoster/
+
+ARG APP_DIR=/hoster
+WORKDIR ${APP_DIR}
+
+ADD hoster.py ./
 
 CMD ["python3", "-u", "hoster.py"]
-
-
-
+# CMD "whoami"
