@@ -1,67 +1,72 @@
-name: 'Publish Container Image'
+name: 'Build & Publish Container Image'
 
-# Controls when the action will run. Triggers the workflow on push or pull
-# request events but only for the master branch
 on:
   push:
-    branches:
-      - '*'
+  pull_request:
 
 permissions:
   contents: 'read'
-  packages: 'write'
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build-and-publish:
-    # The type of runner that the job will run on
+  test-scripts:
     runs-on: 'ubuntu-latest'
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: 'Checkout Repository 🛎️'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v3'
+      - name: 'Test 🧪'
+        run: 'ruby .github/workflows/scripts/test/get-image-tags.unit.rb'
 
-      - name: 'Build 🏗️'
-        id: 'build'
+  container-build:
+    needs: 'test-scripts'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Checkout Repository 🛎️'
+        uses: 'actions/checkout@v3'
+      - uses: 'docker/setup-buildx-action@v2'
+
+      - name: 'Get image tag names 🏷️'
+        id: 'tag-image'
         run: |
-          image="$( \
-            basename "$(echo "${{ github.repository }}")" \
-            | tr '[:upper:]' '[:lower:]' \
-            | sed 's/docker-//' \
-          )"
-          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "image_tags=$(
+            .github/workflows/scripts/get-image-tags.rb \
+              "${{ github.repository }}" \
+              "${{ github.ref_name }}" \
+              "${{ github.ref_type }}" \
+              "${{ github.event.repository.default_branch }}" \
+          )" >> "$GITHUB_OUTPUT"
+      - name: 'Build container 🐳'
+        uses: 'docker/build-push-action@v3'
+        with:
+          file: 'Dockerfile'
+          tags: '${{ steps.tag-image.outputs.image_tags }}'
+          cache-from: 'type=gha'
+          cache-to: 'type=gha,mode=max'
 
-          docker build --file "Dockerfile" --tag "$image" .
+    outputs:
+      image_tags: '${{ steps.tag-image.outputs.image_tags }}'
 
+  publish:
+    needs:
+      - 'container-build'
+    if: contains(needs.container-build.outputs.image_tags, ':latest')
+    runs-on: 'ubuntu-latest'
+    permissions:
+      packages: 'write'
+    steps:
+      - name: 'Checkout Repository 🛎️'
+        uses: 'actions/checkout@v3'
+      - uses: 'docker/setup-buildx-action@v2'
       - name: 'Login to GitHub Container Registry 🔑'
-        uses: 'docker/login-action@v1'
-        if: '${{ github.ref_name }} == ${{ github.event.repository.default_branch }}'
+        uses: 'docker/login-action@v2'
         with:
           registry: 'ghcr.io'
           username: '${{ github.repository_owner }}'
           password: '${{ secrets.GITHUB_TOKEN }}'
 
-      - name: 'Publish to Registry 🐳'
-        if: '${{ github.ref_name }} == ${{ github.event.repository.default_branch }}'
-        run: |
-          image="${{ steps.build.outputs.image }}"
-          repo="ghcr.io/${{ github.repository_owner }}/$image"
-          branch="$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')"
-          version="$branch"
-
-          echo "repo = $repo"
-          echo "image = $image"
-          echo "version = $version"
-
-          docker tag "$image" "$repo/$image:$version"
-          docker push "$repo/$image:$version"
-
-          # Use Docker `latest` tag convention
-          if [[ "${{ github.event.repository.default_branch }}" == "$branch" ]]; then
-            docker tag "$image" "$repo/$image:latest"
-            docker push "$repo/$image:latest"
-          fi
-
-          echo "registry_uri=$repo/$image" >> "$GITHUB_OUTPUT"
+      - name: 'Publish to Registry 💨'
+        uses: 'docker/build-push-action@v3'
+        with:
+          file: 'Dockerfile'
+          push: true
+          tags: '${{ needs.container-build.outputs.image_tags }}'
+          cache-from: 'type=gha'
