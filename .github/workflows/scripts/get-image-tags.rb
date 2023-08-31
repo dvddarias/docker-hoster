@@ -18,7 +18,7 @@ def main
       git_ref_name: git_ref_name,
       git_ref_type: git_ref_type,
       git_default_branch: git_default_branch,
-      package: JSON.parse(File.read('package.json')),
+      semver: '0.0.0',
     ).to_a.join(',')
 
   # log to stderr so that stdout only contains the full tags

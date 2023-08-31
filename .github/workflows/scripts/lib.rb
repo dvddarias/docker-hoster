@@ -10,7 +10,7 @@ def get_image_tags(
   git_ref_name: nil,
   git_ref_type: nil,
   git_default_branch: nil,
-  package: nil
+  semver: nil
 )
   container_repo = "ghcr.io/#{git_repo.downcase}"
   versions = Set[]
@@ -20,9 +20,9 @@ def get_image_tags(
     versions.add(git_ref_name.downcase.gsub(/[^a-z0-9._\n]+/, '-'))
   elsif git_ref_type == 'tag'
     # add version tag
-    versions.add(package['version'])
+    versions.add(semver)
     # TODO: check that this is actually latest
-    parsed = parse_semver(package['version'])
+    parsed = parse_semver(semver)
     if parsed.pre == nil
       versions.add(parsed.major)
       versions.add("#{parsed.major}.#{parsed.minor}")

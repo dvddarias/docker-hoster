@@ -13,7 +13,7 @@ class TestGetImageTags < Test::Unit::TestCase
         git_ref_name: 'feat/foo-bar',
         git_ref_type: 'branch',
         git_default_branch: 'master',
-        package: JSON.parse('{"version": "1.0.0"}'),
+        semver: '1.0.0',
       ),
     )
 
@@ -27,7 +27,7 @@ class TestGetImageTags < Test::Unit::TestCase
         git_ref_name: 'master',
         git_ref_type: 'branch',
         git_default_branch: 'master',
-        package: JSON.parse('{"version": "1.0.0"}'),
+        semver: '1.0.0',
       ),
     )
   end
@@ -46,7 +46,7 @@ class TestGetImageTags < Test::Unit::TestCase
         git_ref_name: '1.0.0',
         git_ref_type: 'tag',
         git_default_branch: 'master',
-        package: JSON.parse('{"version": "1.0.0"}'),
+        semver: '1.0.0',
       ),
     )
   end
@@ -63,7 +63,7 @@ class TestGetImageTags < Test::Unit::TestCase
         git_ref_name: '1.0.0',
         git_ref_type: 'tag',
         git_default_branch: 'master',
-        package: JSON.parse('{"version": "1.0.0-pre"}'),
+        semver: '1.0.0-pre',
       ),
     )
   end
@@ -76,7 +76,7 @@ class TestGetImageTags < Test::Unit::TestCase
         git_ref_name: 'feat/Foo---bar',
         git_ref_type: 'branch',
         git_default_branch: 'master',
-        package: JSON.parse('{"version": "1.0.0"}'),
+        semver: '1.0.0',
       ),
     )
   end
