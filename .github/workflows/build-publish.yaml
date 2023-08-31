@@ -34,16 +34,31 @@ jobs:
               "${{ github.ref_type }}" \
               "${{ github.event.repository.default_branch }}" \
           )" >> "$GITHUB_OUTPUT"
+
+      - name: 'Set up QEMU 🦅'
+        id: 'qemu'
+        uses: 'docker/setup-qemu-action@v2'
+        with:
+          platforms: 'arm64'
+      - name: 'Set target build platforms 📝'
+        id: 'target-platforms'
+        run: |
+          echo "target_platforms=linux/amd64,linux/${{ steps.qemu.outputs.platforms }}" >> "$GITHUB_OUTPUT"
+
       - name: 'Build container 🐳'
+        id: 'build'
         uses: 'docker/build-push-action@v3'
         with:
           file: 'Dockerfile'
           tags: '${{ steps.tag-image.outputs.image_tags }}'
+          platforms: '${{ steps.target-platforms.outputs.target_platforms }}'
           cache-from: 'type=gha'
           cache-to: 'type=gha,mode=max'
 
     outputs:
       image_tags: '${{ steps.tag-image.outputs.image_tags }}'
+      qemu_platforms: '${{ steps.qemu.outputs.platforms }}'
+      docker_platforms: '${{ steps.target-platforms.outputs.target_platforms }}'
 
   publish:
     needs:
@@ -63,10 +78,16 @@ jobs:
           username: '${{ github.repository_owner }}'
           password: '${{ secrets.GITHUB_TOKEN }}'
 
+      - name: 'Set up QEMU 🦅'
+        uses: 'docker/setup-qemu-action@v2'
+        with:
+          platforms: '${{ needs.container-build.outputs.qemu_platforms }}'
+
       - name: 'Publish to Registry 💨'
         uses: 'docker/build-push-action@v3'
         with:
           file: 'Dockerfile'
           push: true
           tags: '${{ needs.container-build.outputs.image_tags }}'
+          platforms: '${{ needs.container-build.outputs.docker_platforms }}'
           cache-from: 'type=gha'
