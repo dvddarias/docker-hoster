@@ -43,7 +43,8 @@ jobs:
       - name: 'Set target build platforms 📝'
         id: 'target-platforms'
         run: |
-          echo "target_platforms=linux/amd64,linux/${{ steps.qemu.outputs.platforms }}/v8" >> "$GITHUB_OUTPUT"
+          qemu_platforms="$(.github/workflows/scripts/convert-arch-to-platform.sh "${{ steps.qemu.outputs.platforms }}")"
+          echo "target_platforms=$qemu_platforms" >> "$GITHUB_OUTPUT"
 
       - name: 'Build container 🐳'
         id: 'build'
