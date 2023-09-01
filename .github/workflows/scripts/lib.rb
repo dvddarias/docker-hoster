@@ -1,18 +1,15 @@
 require 'set'
 
-# @param git_repo [String]
 # @param git_ref_name [String]
 # @param git_ref_type [String]
 # @param git_default_branch [String]
 # @return [Set[String]]
 def get_image_tags(
-  git_repo: nil,
   git_ref_name: nil,
   git_ref_type: nil,
   git_default_branch: nil,
   semver: nil
 )
-  container_repo = "ghcr.io/#{git_repo.downcase}"
   versions = Set[]
 
   if git_ref_type == 'branch'
@@ -24,7 +21,7 @@ def get_image_tags(
     # TODO: check that this is actually latest
     parsed = parse_semver(semver)
     if parsed.pre == nil
-      versions.add(parsed.major)
+      versions.add(parsed.major.to_s)
       versions.add("#{parsed.major}.#{parsed.minor}")
       versions.add("#{parsed.major}.#{parsed.minor}.#{parsed.patch}")
     end
@@ -39,7 +36,18 @@ def get_image_tags(
     versions.add('latest')
   end
 
-  return versions.map! { |v| "#{container_repo}/bot:#{v}" }
+  return versions
+end
+
+# @param registry [String]
+# @param git_repo [String]
+# @param sub_image [String?]
+# @return String
+def get_image_name(registry: 'ghcr.io', git_repo: nil, sub_image: nil)
+  git_repo = git_repo.downcase
+
+  default_sub_image = File.basename git_repo
+  container_repo = "#{registry}/#{git_repo}/#{sub_image ? sub_image : default_sub_image}"
 end
 
 Semver = Struct.new('Semver', :major, :minor, :patch, :pre, :build)

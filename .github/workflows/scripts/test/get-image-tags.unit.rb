@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'test/unit'
 require 'json'
 require 'set'
@@ -7,9 +9,8 @@ require_relative '../lib'
 class TestGetImageTags < Test::Unit::TestCase
   def test_simple_branch
     assert_equal(
-      Set['ghcr.io/virginity-bot/virginity-bot/bot:feat-foo-bar'],
+      Set['feat-foo-bar'],
       get_image_tags(
-        git_repo: 'Virginity-Bot/virginity-bot',
         git_ref_name: 'feat/foo-bar',
         git_ref_type: 'branch',
         git_default_branch: 'master',
@@ -18,12 +19,8 @@ class TestGetImageTags < Test::Unit::TestCase
     )
 
     assert_equal(
-      Set[
-        'ghcr.io/virginity-bot/virginity.bot/bot:latest',
-        'ghcr.io/virginity-bot/virginity.bot/bot:master'
-      ],
+      Set['latest', 'master'],
       get_image_tags(
-        git_repo: 'Virginity-Bot/virginity.bot',
         git_ref_name: 'master',
         git_ref_type: 'branch',
         git_default_branch: 'master',
@@ -34,15 +31,8 @@ class TestGetImageTags < Test::Unit::TestCase
 
   def test_simple_tag
     assert_equal(
-      Set[
-        'ghcr.io/virginity-bot/virginity.bot/bot:latest',
-        'ghcr.io/virginity-bot/virginity.bot/bot:master',
-        'ghcr.io/virginity-bot/virginity.bot/bot:1.0.0',
-        'ghcr.io/virginity-bot/virginity.bot/bot:1.0',
-        'ghcr.io/virginity-bot/virginity.bot/bot:1'
-      ],
+      Set['latest', 'master', '1.0.0', '1.0', '1'],
       get_image_tags(
-        git_repo: 'Virginity-Bot/virginity.bot',
         git_ref_name: '1.0.0',
         git_ref_type: 'tag',
         git_default_branch: 'master',
@@ -53,13 +43,8 @@ class TestGetImageTags < Test::Unit::TestCase
 
   def test_pre_tag
     assert_equal(
-      Set[
-        'ghcr.io/virginity-bot/virginity.bot/bot:latest',
-        'ghcr.io/virginity-bot/virginity.bot/bot:master',
-        'ghcr.io/virginity-bot/virginity.bot/bot:1.0.0-pre'
-      ],
+      Set['latest', 'master', '1.0.0-pre'],
       get_image_tags(
-        git_repo: 'Virginity-Bot/virginity.bot',
         git_ref_name: '1.0.0',
         git_ref_type: 'tag',
         git_default_branch: 'master',
@@ -70,13 +55,39 @@ class TestGetImageTags < Test::Unit::TestCase
 
   def test_unsafe_branch_name
     assert_equal(
-      Set['ghcr.io/virginity-bot/virginity.bot/bot:feat-foo-bar'],
+      Set['feat-foo-bar'],
       get_image_tags(
-        git_repo: 'Virginity-Bot/virginity.bot',
         git_ref_name: 'feat/Foo---bar',
         git_ref_type: 'branch',
         git_default_branch: 'master',
         semver: '1.0.0',
+      ),
+    )
+  end
+end
+
+class TestGetImageName < Test::Unit::TestCase
+  def test_basic
+    assert_equal(
+      'ghcr.io/octocat/hello-world/hello-world',
+      get_image_name(
+        git_repo: 'Octocat/hello-world',
+      ),
+    )
+
+    assert_equal(
+      'ghcr.io/octocat/hello-world/foobar',
+      get_image_name(
+        git_repo: 'Octocat/hello-world',
+        sub_image: 'foobar',
+      ),
+    )
+
+    assert_equal(
+      'docker.io/octocat/hello-world/hello-world',
+      get_image_name(
+        registry: 'docker.io',
+        git_repo: 'Octocat/hello-world',
       ),
     )
   end
