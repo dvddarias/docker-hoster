@@ -40,14 +40,24 @@ def get_image_tags(
 end
 
 # @param registry [String]
-# @param git_repo [String]
+# @param username [String]
 # @param sub_image [String?]
 # @return String
-def get_image_name(registry: 'ghcr.io', git_repo: nil, sub_image: nil)
-  git_repo = git_repo.downcase
+def get_image_name(
+  registry: 'ghcr.io',
+  username: nil,
+  project_name: nil,
+  sub_image: nil
+)
+  username = username.downcase
+  project_name = project_name.downcase.gsub(/^docker-/, '')
 
-  default_sub_image = File.basename git_repo
-  container_repo = "#{registry}/#{git_repo}/#{sub_image ? sub_image : default_sub_image}"
+  case registry
+    when 'ghcr.io'
+      container_repo = "#{registry}/#{username}/#{project_name}/#{sub_image ? sub_image : project_name}"
+    when 'docker.io'
+      container_repo = "#{registry}/#{username}/#{project_name}#{sub_image ? "-#{sub_image}" : ''}"
+  end
 end
 
 Semver = Struct.new('Semver', :major, :minor, :patch, :pre, :build)

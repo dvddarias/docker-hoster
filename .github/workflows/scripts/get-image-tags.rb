@@ -4,15 +4,16 @@ require 'json'
 require_relative 'lib'
 
 def main
-  git_repo = ARGV[0]
-  git_ref_name = ARGV[1]
-  git_ref_type = ARGV[2]
-  git_default_branch = ARGV[3]
+  repo_owner = ARGV[0]
+  repo_name = ARGV[1]
+  git_ref_name = ARGV[2]
+  git_ref_type = ARGV[3]
+  git_default_branch = ARGV[4]
 
   # log to stderr so that stdout only contains the full tags
-  $stderr.puts "'#{git_repo}', '#{git_ref_name}', '#{git_ref_type}', '#{git_default_branch}'"
+  $stderr.puts "'#{repo_owner}', '#{repo_name}', '#{git_ref_name}', '#{git_ref_type}', '#{git_default_branch}'"
 
-  image_name = get_image_name(git_repo: git_repo)
+  image_name = get_image_name(username: repo_owner, project_name: repo_name)
 
   tags =
     get_image_tags(

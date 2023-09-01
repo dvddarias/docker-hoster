@@ -71,23 +71,53 @@ class TestGetImageName < Test::Unit::TestCase
     assert_equal(
       'ghcr.io/octocat/hello-world/hello-world',
       get_image_name(
-        git_repo: 'Octocat/hello-world',
+        username: 'Octocat',
+        project_name: 'hello-world',
+      ),
+    )
+
+    assert_equal(
+      'ghcr.io/octocat/hello-world/hello-world',
+      get_image_name(
+        username: 'Octocat',
+        project_name: 'docker-hello-world',
       ),
     )
 
     assert_equal(
       'ghcr.io/octocat/hello-world/foobar',
       get_image_name(
-        git_repo: 'Octocat/hello-world',
+        username: 'Octocat',
+        project_name: 'hello-world',
         sub_image: 'foobar',
       ),
     )
 
     assert_equal(
-      'docker.io/octocat/hello-world/hello-world',
+      'ghcr.io/octocat/hello-world/foo',
+      get_image_name(
+        username: 'Octocat',
+        project_name: 'hello-world',
+        sub_image: 'foo'
+      ),
+    )
+
+    assert_equal(
+      'docker.io/octocat/hello-world',
       get_image_name(
         registry: 'docker.io',
-        git_repo: 'Octocat/hello-world',
+        username: 'Octocat',
+        project_name: 'hello-world',
+      ),
+    )
+
+    assert_equal(
+      'docker.io/octocat/hello-world-foo',
+      get_image_name(
+        registry: 'docker.io',
+        username: 'Octocat',
+        project_name: 'hello-world',
+        sub_image: 'foo'
       ),
     )
   end
