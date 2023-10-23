@@ -55,6 +55,13 @@ def main():
                 hosts.pop(container_id)
                 update_hosts_file()
 
+        if status=="rename":
+            container_id = e["id"]
+            if container_id in hosts:
+                container = get_container_data(dockerClient, container_id)
+                hosts[container_id] = container
+                update_hosts_file()
+
 
 def get_container_data(dockerClient, container_id):
     #extract all the info with the docker api
