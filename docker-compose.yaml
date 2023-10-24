@@ -1,0 +1,12 @@
+# This file replaces `docker build -t docker-hoster .`
+# Run this with `docker-compose build`
+version: '3.8'
+
+services:
+  host-hostnames:
+    container_name: 'host-hostnames'
+    build:
+      context: '.'
+    volumes:
+      - '/var/run/docker.sock:/tmp/docker.sock:ro'
+      - '/etc/hosts:/tmp/hosts'
